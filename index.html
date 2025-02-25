@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Research Management System</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 0; padding: 0; background: #f4f4f4; display: flex; }
+        .sidebar { width: 250px; background: #007bff; color: white; padding: 10px; height: 100vh; overflow-y: auto; }
+        .content { flex: 1; padding: 20px; }
+        .container { max-width: 800px; margin: auto; background: white; padding: 20px; border-radius: 10px; box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); }
+        h1 { text-align: center; }
+        .input-group { display: flex; gap: 10px; margin-bottom: 10px; flex-wrap: wrap; }
+        .input-group input { flex: 1; padding: 8px; border: 1px solid #ccc; border-radius: 5px; }
+        button { padding: 10px 15px; border: none; border-radius: 5px; cursor: pointer; background: #28a745; color: white; }
+        .research-item { padding: 10px; margin: 5px 0; background: white; color: black; border-radius: 5px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; }
+        .research-item:hover { background: #f0f0f0; }
+        .delete-btn { background: red; color: white; border: none; cursor: pointer; padding: 5px; border-radius: 3px; }
+        .alert { padding: 10px; background: green; color: white; position: fixed; top: 10px; right: 10px; border-radius: 5px; display: none; }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <h2>Research List</h2>
+        <div id="researchList"></div>
+    </div>
+    <div class="content">
+        <div class="container">
+            <h1>Research Management System</h1>
+            <div class="input-group">
+                <input type="text" id="title" placeholder="Title" />
+                <input type="text" id="category" placeholder="Category" />
+                <input type="text" id="link" placeholder="Website Link (Optional)" />
+                <input type="file" id="file" accept="application/pdf" />
+            </div>
+            <button onclick="addResearch()">Add Research</button>
+        </div>
+    </div>
+    <div id="alert" class="alert">Research Added Successfully!</div>
+    
+    <script>
+        document.addEventListener("DOMContentLoaded", loadResearches);
+
+        function addResearch() {
+            let title = document.getElementById("title").value.trim();
+            let category = document.getElementById("category").value.trim();
+            let link = document.getElementById("link").value.trim();
+            let fileInput = document.getElementById("file");
+            
+            if (!title || !category || (!fileInput.files.length && !link)) {
+                alert("Please fill in all fields and upload a file or provide a link!");
+                return;
+            }
+            
+            let fileURL = fileInput.files.length ? URL.createObjectURL(fileInput.files[0]) : "";
+            
+            const research = { title, category, fileURL, link };
+            let researches = JSON.parse(localStorage.getItem("researches")) || [];
+            researches.push(research);
+            localStorage.setItem("researches", JSON.stringify(researches));
+            
+            document.getElementById("title").value = "";
+            document.getElementById("category").value = "";
+            document.getElementById("link").value = "";
+            document.getElementById("file").value = "";
+            
+            showAlert();
+            renderResearches();
+        }
+
+        function loadResearches() {
+            renderResearches();
+        }
+
+        function renderResearches() {
+            const researchList = document.getElementById("researchList");
+            researchList.innerHTML = "";
+            let researches = JSON.parse(localStorage.getItem("researches")) || [];
+            researches.forEach((res, index) => {
+                const item = document.createElement("div");
+                item.className = "research-item";
+                item.innerHTML = `<span>${res.title}</span>
+                                  <div>
+                                      ${res.fileURL ? `<a href="${res.fileURL}" target="_blank" rel="noopener noreferrer">📄 Open PDF</a>` : ""}
+                                      ${res.link ? `<a href="${res.link}" target="_blank" rel="noopener noreferrer">🌐 Open Link</a>` : ""}
+                                      <button class='delete-btn' onclick='deleteResearch(${index})'>X</button>
+                                  </div>`;
+                researchList.appendChild(item);
+            });
+        }
+
+        function deleteResearch(index) {
+            let researches = JSON.parse(localStorage.getItem("researches")) || [];
+            researches.splice(index, 1);
+            localStorage.setItem("researches", JSON.stringify(researches));
+            renderResearches();
+        }
+
+        function showAlert() {
+            let alertBox = document.getElementById("alert");
+            alertBox.style.display = "block";
+            setTimeout(() => { alertBox.style.display = "none"; }, 2000);
+        }
+    </script>
+</body>
+</html>
